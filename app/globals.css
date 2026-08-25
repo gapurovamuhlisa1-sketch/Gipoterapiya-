@@ -349,6 +349,36 @@ button:disabled {
   background: var(--accent-hover);
 }
 
+/* ---- admin / purchase page ---- */
+.admin-section {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 32px 24px;
+}
+
+.admin-card {
+  max-width: 420px;
+  width: 100%;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 18px;
+  padding: 34px 30px;
+  box-shadow: 0 22px 48px -28px rgba(43, 36, 32, 0.35);
+}
+
+.admin-card h1 {
+  font-size: 24px;
+  margin-bottom: 12px;
+}
+
+.admin-preview {
+  font-size: 14px;
+  color: var(--ink-soft);
+  margin-bottom: 24px;
+}
+
 @media (prefers-reduced-motion: reduce) {
   .breath {
     animation: none;

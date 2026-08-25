@@ -35,7 +35,7 @@ export async function POST(req: NextRequest) {
   const eventSourceUrl = process.env.NEXT_PUBLIC_SITE_URL ?? req.nextUrl.origin;
 
   const results = await Promise.allSettled([
-    sendTelegramLead(lead),
+    sendTelegramLead({ lead, fbp, fbc }),
     sendMetaLeadEvent({ lead, eventId, eventSourceUrl, clientIp, clientUserAgent, fbp, fbc }),
   ]);
 

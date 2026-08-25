@@ -1,12 +1,22 @@
 import { createHash } from "crypto";
 import type { LeadPayload } from "./types";
 
-interface MetaCapiOptions {
+interface LeadEventOptions {
   lead: LeadPayload;
   eventId: string;
   eventSourceUrl: string;
   clientIp?: string;
   clientUserAgent?: string;
+  fbp?: string;
+  fbc?: string;
+}
+
+interface PurchaseEventOptions {
+  phone: string;
+  amount: number;
+  currency: string;
+  eventId: string;
+  eventSourceUrl: string;
   fbp?: string;
   fbc?: string;
 }
@@ -22,7 +32,7 @@ function normalizePhone(phone: string): string {
   return `+${digits}`;
 }
 
-export async function sendMetaLeadEvent(options: MetaCapiOptions): Promise<void> {
+async function sendMetaEvent(eventName: string, data: Record<string, unknown>): Promise<void> {
   const pixelId = process.env.NEXT_PUBLIC_META_PIXEL_ID;
   const accessToken = process.env.META_CAPI_ACCESS_TOKEN;
 
@@ -33,28 +43,8 @@ export async function sendMetaLeadEvent(options: MetaCapiOptions): Promise<void>
     return;
   }
 
-  const { lead, eventId, eventSourceUrl, clientIp, clientUserAgent, fbp, fbc } = options;
-
-  const userData: Record<string, unknown> = {
-    ph: [sha256(normalizePhone(lead.phone))],
-    fn: [sha256(lead.name)],
-  };
-  if (clientIp) userData.client_ip_address = clientIp;
-  if (clientUserAgent) userData.client_user_agent = clientUserAgent;
-  if (fbp) userData.fbp = fbp;
-  if (fbc) userData.fbc = fbc;
-
   const body = {
-    data: [
-      {
-        event_name: "Lead",
-        event_time: Math.floor(Date.now() / 1000),
-        event_id: eventId,
-        event_source_url: eventSourceUrl,
-        action_source: "website",
-        user_data: userData,
-      },
-    ],
+    data: [data],
     ...(process.env.META_CAPI_TEST_EVENT_CODE
       ? { test_event_code: process.env.META_CAPI_TEST_EVENT_CODE }
       : {}),
@@ -71,6 +61,51 @@ export async function sendMetaLeadEvent(options: MetaCapiOptions): Promise<void>
 
   if (!res.ok) {
     const errBody = await res.text().catch(() => "");
-    console.error("[meta-capi] hodisa yuborilmadi:", res.status, errBody);
+    console.error(`[meta-capi] ${eventName} hodisasi yuborilmadi:`, res.status, errBody);
   }
+}
+
+export async function sendMetaLeadEvent(options: LeadEventOptions): Promise<void> {
+  const { lead, eventId, eventSourceUrl, clientIp, clientUserAgent, fbp, fbc } = options;
+
+  const userData: Record<string, unknown> = {
+    ph: [sha256(normalizePhone(lead.phone))],
+    fn: [sha256(lead.name)],
+  };
+  if (clientIp) userData.client_ip_address = clientIp;
+  if (clientUserAgent) userData.client_user_agent = clientUserAgent;
+  if (fbp) userData.fbp = fbp;
+  if (fbc) userData.fbc = fbc;
+
+  await sendMetaEvent("Lead", {
+    event_name: "Lead",
+    event_time: Math.floor(Date.now() / 1000),
+    event_id: eventId,
+    event_source_url: eventSourceUrl,
+    action_source: "website",
+    user_data: userData,
+  });
+}
+
+export async function sendMetaPurchaseEvent(options: PurchaseEventOptions): Promise<void> {
+  const { phone, amount, currency, eventId, eventSourceUrl, fbp, fbc } = options;
+
+  const userData: Record<string, unknown> = {
+    ph: [sha256(normalizePhone(phone))],
+  };
+  if (fbp) userData.fbp = fbp;
+  if (fbc) userData.fbc = fbc;
+
+  await sendMetaEvent("Purchase", {
+    event_name: "Purchase",
+    event_time: Math.floor(Date.now() / 1000),
+    event_id: eventId,
+    event_source_url: eventSourceUrl,
+    action_source: "website",
+    user_data: userData,
+    custom_data: {
+      currency,
+      value: amount,
+    },
+  });
 }
