@@ -12,10 +12,10 @@ export async function sendTelegramLead(lead: LeadPayload): Promise<void> {
   }
 
   const text = [
-    "🧠 *Yangi lid — Gipnoterapiya darsligi*",
+    "🧠 Yangi lid — Gipnoterapiya darsligi",
     "",
-    `👤 Ism: ${escapeMarkdown(lead.name)}`,
-    `📞 Telefon: ${escapeMarkdown(lead.phone)}`,
+    `👤 Ism: ${lead.name}`,
+    `📞 Telefon: ${lead.phone}`,
     `🕒 ${new Date().toLocaleString("uz-UZ", { timeZone: "Asia/Tashkent" })}`,
   ].join("\n");
 
@@ -25,7 +25,6 @@ export async function sendTelegramLead(lead: LeadPayload): Promise<void> {
     body: JSON.stringify({
       chat_id: chatId,
       text,
-      parse_mode: "Markdown",
     }),
   });
 
@@ -33,8 +32,4 @@ export async function sendTelegramLead(lead: LeadPayload): Promise<void> {
     const body = await res.text().catch(() => "");
     console.error("[telegram] xabar yuborilmadi:", res.status, body);
   }
-}
-
-function escapeMarkdown(value: string): string {
-  return value.replace(/([_*[\]()~`>#+\-=|{}.!])/g, "\\$1");
 }
