@@ -47,9 +47,11 @@ export async function sendTelegramLead({ lead, fbp, fbc }: SendTelegramLeadOptio
   }
 }
 
+const FALLBACK_SITE_URL = "https://gipoterapiya.vercel.app";
+
 function buildPurchaseLink(lead: LeadPayload, fbp?: string, fbc?: string): string | null {
-  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL;
-  if (!siteUrl || !process.env.LEAD_SECRET) return null;
+  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || FALLBACK_SITE_URL;
+  if (!process.env.LEAD_SECRET) return null;
 
   try {
     const { d, s } = signLeadToken({ name: lead.name, phone: lead.phone, fbp, fbc, ts: Date.now() });
